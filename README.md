@@ -1,8 +1,10 @@
 # Python scanner for AI infrastructure recognition
 
 This project was made using my own programming knowledge and Cursor AI.
+
 -----
-##### The main issue was that the project gets messy and to complicated over time.
+
+#### The main issue was that the project gets messy and to complicated over time.
 When building the very first version of that program I haven't defined the architecture on my own. I specified the Cursor AI what functionality of the scanner I need. I only made a detailed explanation of features, requirements and possibilities. I completely ignored the architecture side. This quickly lead the project to become to complicated and poorly working.
 My problem was that I was expecting the Cursor to solve every problem for me. I didn't understand that Cursor is an assistant. This AI is only converting my ideas into real programmed algorithm but it cannot make an infrastructure on it's own.
 
