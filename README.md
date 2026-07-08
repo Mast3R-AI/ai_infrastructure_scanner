@@ -1,4 +1,4 @@
-# Python scanner for AI infrastructure recognition
+## Python scanner for AI infrastructure recognition
 
 This project was made using my own programming knowledge and Cursor AI.
 
