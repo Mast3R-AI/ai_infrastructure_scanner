@@ -1,0 +1,10 @@
+id: grpc
+name: gRPC
+description: gRPC service over HTTP/2 (h2c or TLS with ALPN h2)
+
+version: ""
+
+port_hints: [50051, 50052, 9090, 9901]
+
+# HTTP indicators are not used — identification is via gathering/grpc_probe.py
+indicators: []

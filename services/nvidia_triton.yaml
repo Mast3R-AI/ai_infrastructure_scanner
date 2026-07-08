@@ -1,0 +1,23 @@
+id: nvidia_triton
+name: Nvidia Triton Inference Server
+description: NVIDIA Triton inference server
+version: "2"
+
+port_hints: [8000, 8001]
+
+indicators:
+  - id: health_ready
+    type: endpoint
+    method: GET
+    path: /v2
+    expected_status: [200]
+    json:
+      required_keys: ["name", "version", "extensions"]
+
+  - id: nv_status_header
+    type: header
+    header: NV-Status
+    must_exist: true
+    unless:
+      - header: Server
+        contains: TorchServe

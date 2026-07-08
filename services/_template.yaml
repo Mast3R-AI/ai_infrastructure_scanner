@@ -1,0 +1,147 @@
+# =============================================================================
+# TEMPLATE — copy this file to create a new service knowledge file
+# =============================================================================
+#
+# Steps to add a new service:
+#   1. Copy this file to services/<your_service_id>.yaml
+#   2. Fill in id, name, description, port_hints, and indicators
+#   3. Add <your_service_id> to services/hierarchy.yaml (order matters!)
+#   4. Optionally add port entries to services/port_hints.yaml for suspicion
+#
+# IDENTIFICATION RULES (how ai_scanner uses this file):
+#   - Each item in "indicators" is independent (OR logic).
+#   - If ANY single indicator matches, the service is identified.
+#   - Indicators are tried in list order; the first match wins for output.
+#   - Port numbers never identify — they only produce "suspected:" when unknown.
+#   - Services are tried in hierarchy.yaml order; first identified service wins.
+#   - With -a (aggressive mode): all services are tested; all matches are reported.
+#   - gRPC: unknown ports are probed via gathering/grpc_probe.py automatically.
+#   - With -g: gRPC probe runs on every port (-a includes closed ports).
+#
+# HOW TO FIND INDICATORS (research checklist):
+#   1. Open the service in a browser or curl and note what responds on GET/POST.
+#   2. Check response status codes on known API paths (200, 404 patterns).
+#   3. Inspect response headers (Server, custom X-* / NV-* headers).
+#   4. For JSON APIs: note top-level keys (e.g. "models", "version").
+#   5. For metrics/text APIs: note unique strings in the body (metric names).
+#   6. Probe a wrong path and see how errors look (404 body, error JSON keys).
+#   7. Add one indicator per unique signal — keep each self-sufficient.
+#
+# =============================================================================
+
+# Required. Must match filename (services/<id>.yaml) and hierarchy.yaml entry.
+id: example_service
+
+# Human-readable name printed in scan results.
+name: Example Service
+
+# Short description shown in the DESCRIPTION column of scan output.
+description: >
+  One or two sentences describing the service and where you found the indicators.
+
+# Optional version string shown in the VERSION column (displayed as "-" if empty).
+version: "1.0"
+
+# Ports commonly associated with this service — suspicion only, not identification.
+port_hints: [8080]
+
+indicators:
+
+  # ---------------------------------------------------------------------------
+  # TYPE: endpoint
+  # Use when a GET or POST to a path is enough to recognize the service.
+  # ---------------------------------------------------------------------------
+  - id: unique_indicator_name          # short snake_case id; shown in verbose output
+    type: endpoint
+    method: GET                        # GET or POST
+    path: /api/version                 # URL path to probe
+    expected_status: [200]             # list of acceptable HTTP status codes
+
+  # Same endpoint type with JSON body check (all checks in ONE indicator must pass).
+  - id: json_key_example
+    type: endpoint
+    method: GET
+    path: /api/status
+    expected_status: [200]
+    json:
+      required_keys:                   # every listed key must exist in the JSON body
+        - "version"
+        - "status"
+
+  # Endpoint with plain-text body keyword (for Prometheus, HTML, XML, etc.).
+  - id: body_keyword_example
+    type: endpoint
+    method: GET
+    path: /metrics
+    expected_status: [200]
+    body_contains:                     # every listed string must appear in response body
+      - "# HELP"
+      - "my_unique_metric_name"
+
+  # ---------------------------------------------------------------------------
+  # TYPE: header
+  # Use when a response header alone identifies the service.
+  # The scanner probes common paths and merges headers from responses.
+  # ---------------------------------------------------------------------------
+  - id: header_example
+    type: header
+    header: X-Custom-Header            # header name (case-insensitive)
+    must_exist: true                   # true = header must be present (value any)
+
+  # Header whose value must contain a substring.
+  - id: header_contains_example
+    type: header
+    header: Server
+    contains: "MyService/1.0"
+
+  # Header with disqualifier — this indicator is skipped (not the whole service)
+  # when the unless guard fires. Useful to tell Triton apart from TorchServe.
+  - id: header_with_unless_example
+    type: header
+    header: NV-Status
+    must_exist: true
+    unless:
+      - header: Server
+        contains: TorchServe           # skip this indicator if Server contains TorchServe
+
+  # ---------------------------------------------------------------------------
+  # TYPE: error_response
+  # Use when the service has a distinctive error for unknown paths.
+  # ---------------------------------------------------------------------------
+  - id: error_pattern_example
+    type: error_response
+    method: GET
+    path: /this-path-should-not-exist
+    expected_status: [404, 405]
+    body_contains:
+      - "Not Found"
+
+# =============================================================================
+# FIELD REFERENCE
+# =============================================================================
+#
+# id (service)       : unique snake_case identifier
+# name               : display name
+# description        : shown in DESCRIPTION column when service is identified
+# version            : optional; shown in VERSION column ("-" if empty)
+# port_hints         : list of ints for "suspected:" fallback only
+#
+# indicators[].id    : unique name per indicator within this file
+# indicators[].type  : endpoint | header | error_response
+# indicators[].method: GET | POST (default GET)
+# indicators[].path  : request path (default /)
+# indicators[].expected_status : list of ints (default [200])
+# indicators[].json.required_keys : list of JSON keys that must exist
+# indicators[].body_contains      : list of substrings that must appear in body
+# indicators[].header             : header name for type: header
+# indicators[].must_exist           : header must be present (type: header)
+# indicators[].contains             : header value must contain this string
+# indicators[].unless               : list of guards that veto this indicator only
+#
+# VERBOSITY (CLI -v flags):
+#   default  : PORT / STATE / SERVICE / VERSION / DESCRIPTION only
+#   -v       : also show verified indicator proof tree under identified services
+#   -vv      : also show not-verified indicators
+#   -vvv     : print full HTTP request log before scan results, then -vv output
+#
+# =============================================================================

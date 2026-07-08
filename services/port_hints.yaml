@@ -1,0 +1,9 @@
+hints:
+  11434: ollama
+  8000: nvidia_triton
+  8001: nvidia_triton
+  8002: nvidia_prometheus
+  8080: generic-http
+  50051: grpc
+  50052: grpc
+  9090: grpc

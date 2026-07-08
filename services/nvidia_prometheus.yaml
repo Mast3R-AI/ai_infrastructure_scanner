@@ -1,0 +1,57 @@
+# =============================================================================
+# NVIDIA Triton Prometheus Metrics (port 8002)
+# =============================================================================
+# Triton exposes a Prometheus text exposition endpoint at GET /metrics.
+# Default port: 8002 (--metrics-port to change).
+# Docs: https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/user_guide/metrics.html
+#
+# Response is plain text (not JSON). Look for metric names prefixed with "nv_".
+# Each indicator below stands alone — ANY one match identifies this service.
+
+id: nvidia_prometheus
+name: NVIDIA Triton Prometheus Metrics
+description: >
+  Prometheus metrics endpoint shipped with NVIDIA Triton Inference Server.
+  Publishes GPU, CPU, and inference counters in Prometheus text format.
+version: ""
+
+# Used only when identification fails — never identifies by port alone.
+port_hints: [8002]
+
+indicators:
+
+  # Prometheus exposition format always includes "# HELP" lines.
+  - id: prometheus_help_block
+    type: endpoint
+    method: GET
+    path: /metrics
+    expected_status: [200]
+    body_contains:
+      - "# HELP"
+
+  # NVIDIA Triton-specific inference counter (present on any running Triton instance).
+  - id: nv_inference_request_success
+    type: endpoint
+    method: GET
+    path: /metrics
+    expected_status: [200]
+    body_contains:
+      - "nv_inference_request_success"
+
+  # NVIDIA Triton GPU metric — only emitted when GPU metrics are enabled.
+  - id: nv_gpu_utilization
+    type: endpoint
+    method: GET
+    path: /metrics
+    expected_status: [200]
+    body_contains:
+      - "nv_gpu_utilization"
+
+  # Inference queue metric — unique to Triton's Prometheus exporter.
+  - id: nv_inference_queue_duration_us
+    type: endpoint
+    method: GET
+    path: /metrics
+    expected_status: [200]
+    body_contains:
+      - "nv_inference_queue_duration_us"

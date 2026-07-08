@@ -1,0 +1,15 @@
+id: ollama
+name: Ollama
+description: Local LLM inference server
+version: ""
+
+port_hints: [11434]
+
+indicators:
+  - id: api_tags_models
+    type: endpoint
+    method: GET
+    path: /api/tags
+    expected_status: [200]
+    json:
+      required_keys: ["models"]

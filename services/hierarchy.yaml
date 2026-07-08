@@ -1,0 +1,5 @@
+services:
+  - ollama
+  - nvidia_triton
+  - nvidia_prometheus
+  - qdrant

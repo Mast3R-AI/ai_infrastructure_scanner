@@ -1,0 +1,15 @@
+id: qdrant
+name: Qdrant
+description: Qdrant is a vector database for storing and querying vectors.
+version: ""
+
+port_hints: [6333]
+
+indicators:
+  - id: health_ready
+    type: endpoint
+    method: GET
+    path: /collections
+    expected_status: [200]
+    json:
+      required_keys: ["status", "collections"]
